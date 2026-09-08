@@ -160,45 +160,45 @@
 </div>
 
 <script>
-    // 商品資料庫
+    // 商品資料庫 (新增了 weight 與 address 欄位)
     const storeDatabase = [
         { 
+            store: "百佳超級市場", 
             name: "金鳳香米", 
             weight: "5 公斤 (kg)", 
             price: 85, 
-            store: "百佳超級市場", 
             address: "銅鑼灣軒尼詩道500號興利中心地下", 
             url: "https://www.parknshop.com" 
         },
         { 
+            store: "惠康超級市場", 
             name: "金鳳泰國頂級香米", 
             weight: "5 公斤 (kg)", 
             price: 82, 
-            store: "惠康超級市場", 
             address: "中環德輔道中25號安樂園大廈地下", 
             url: "https://www.wellcome.com.hk" 
         },
         { 
+            store: "HKTVmall", 
             name: "金鳳泰國香米 (官方直送)", 
             weight: "5 公斤 (kg)", 
             price: 79, 
-            store: "HKTVmall", 
             address: "網店 (HKTVmall O2O 門市可自取)", 
             url: "https://www.hktvmall.com" 
         },
         { 
+            store: "豐澤 Fortress", 
             name: "Apple iPhone 15 128GB", 
             weight: "171 克 (g)", 
             price: 6599, 
-            store: "豐澤 Fortress", 
             address: "九龍塘達之路80號又一城MTR層01號舖", 
             url: "https://www.fortress.com.hk" 
         },
         { 
+            store: "友和 YOHO", 
             name: "Apple iPhone 15 128GB", 
             weight: "171 克 (g)", 
             price: 6499, 
-            store: "友和 YOHO", 
             address: "長沙灣長義街9號D2 Place ONE 2樓201號舖", 
             url: "https://www.yohohongkong.com" 
         }
@@ -219,7 +219,7 @@
             return;
         }
 
-        // 過濾搜尋結果
+        // 過濾搜尋結果（支援搜尋商品名、商店名、重量或地址）
         const filtered = storeDatabase.filter(item => 
             item.name.toLowerCase().includes(query) || 
             item.store.toLowerCase().includes(query) ||
@@ -234,16 +234,16 @@
         // 按價格由低至高排序
         filtered.sort((a, b) => a.price - b.price);
 
-        // 建立 HTML 表格（調整欄位順序：價格在前，商店名稱在後）
+        // 建立 HTML 表格
         let tableHTML = `
             <table>
                 <thead>
                     <tr>
+                        <th>商店</th>
                         <th>商品全名</th>
                         <th>重量 / 規格</th>
                         <th>價格 (HKD)</th>
-                        <th>商店</th>
-                        <th>門市地址</th>
+                        <th>門市 / 門市地址</th>
                         <th>購買</th>
                     </tr>
                 </thead>
@@ -254,13 +254,13 @@
             const isLowest = index === 0;
             tableHTML += `
                 <tr class="${isLowest ? 'best-price' : ''}">
+                    <td><strong>${item.store}</strong></td>
                     <td>${item.name}</td>
                     <td class="weight">${item.weight || '-'}</td>
                     <td class="price">
                         $${item.price.toLocaleString()}
                         ${isLowest ? '<span class="tag-lowest">最低價</span>' : ''}
                     </td>
-                    <td><strong>${item.store}</strong></td>
                     <td class="address">${item.address || '網上商店'}</td>
                     <td><a href="${item.url}" target="_blank" class="buy-btn">前往連結</a></td>
                 </tr>
