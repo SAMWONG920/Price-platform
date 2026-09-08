@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YAU嘢格價平台商品</title>
+    <title>YAU嘢格價平台</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,8 +17,8 @@
             padding: 20px;
         }
         .container {
-            max-width: 800px;
-            margin: 40px auto;
+            max-width: 950px;
+            margin: 30px auto;
             background: #ffffff;
             padding: 30px;
             border-radius: 12px;
@@ -74,16 +74,19 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            min-width: 750px;
         }
         th, td {
-            padding: 14px 16px;
+            padding: 14px 12px;
             text-align: left;
             border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
         }
         th {
             background-color: #f8fafc;
             color: #4a5568;
             font-weight: 600;
+            white-space: nowrap;
         }
         tr:hover {
             background-color: #f8fafc;
@@ -94,16 +97,27 @@
         .price {
             font-weight: bold;
             color: #1a202c;
+            font-size: 15px;
+            white-space: nowrap;
         }
         .tag-lowest {
             display: inline-block;
             background-color: #22c55e;
             color: white;
             font-size: 11px;
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: 12px;
-            margin-left: 6px;
+            margin-left: 4px;
             font-weight: normal;
+        }
+        .address {
+            color: #718096;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .weight {
+            color: #4a5568;
+            white-space: nowrap;
         }
         .buy-btn {
             display: inline-block;
@@ -112,7 +126,8 @@
             color: #2d3748;
             text-decoration: none;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
+            white-space: nowrap;
             transition: all 0.2s;
         }
         .buy-btn:hover {
@@ -129,12 +144,12 @@
 <body>
 
 <div class="container">
-    <h1>YAU嘢格價平台商品格價搜尋</h1>
-    <p class="subtitle">比較油尖旺各小商店價格，自動找出最低價優惠</p>
+    <h1>YAU嘢格價平台</h1>
+    <p class="subtitle">比較油麻地小店價格、規格與地址，自動找出最低價優惠</p>
     
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="輸入商品關鍵字（如：三文魚, 鑊鏟, 平底鑊...）" onkeypress="handleKeyPress(event)">
-        <button onclick="performSearch()">貨品搜尋</button>
+        <input type="text" id="searchInput" placeholder="輸入商品關鍵字（如：白米, 平底鑊, 貓糧...）" onkeypress="handleKeyPress(event)">
+        <button onclick="performSearch()">格價搜尋</button>
     </div>
 
     <div class="table-responsive">
@@ -145,17 +160,48 @@
 </div>
 
 <script>
-    // 模擬商店數據庫 (可依需求自由增刪項目)
+    // 商品資料庫
     const storeDatabase = [
-        {  name: "土耳其原色無花果乾", weight: "1磅(454g)", price: 6899, store: "HKTVmall",adress: "Kowloon, Mong Kok, Sai Yeung Choi St S, 58號樓上 - 旺角招牌店 號地下" ,url:"https://maps.app.goo.gl/pkWjGPLEEdD6nCGE7"},
-        { store: "豐澤 Fortress", name: "Apple iPhone 15 128GB", price: 6599, url: "https://www.fortress.com.hk" },
-        { store: "百老滙 Broadway", name: "iPhone 15 128GB 智能手機", price: 6680, url: "https://www.broadwaylifestyle.com" },
-        { store: "友和 YOHO", name: "Apple iPhone 15 (128GB)", price: 6499, url: "https://www.yohohongkong.com" },
-        { store: "HKTVmall", name: "Sony WH-1000XM5 耳機", price: 2400, url: "https://www.hktvmall.com" },
-        { store: "友和 YOHO", name: "Sony WH-1000XM5 無線降噪耳機", price: 2280, url: "https://www.yohohongkong.com" },
-        { store: "豐澤 Fortress", name: "Sony WH-1000XM5 頭戴式耳機", price: 2350, url: "https://www.fortress.com.hk" },
-        { store: "百老滙 Broadway", name: "Apple AirPods Pro (第2代)", price: 1749, url: "https://www.broadwaylifestyle.com" },
-        { store: "友和 YOHO", name: "Apple AirPods Pro 2 (USB-C)", price: 1680, url: "https://www.yohohongkong.com" }
+        { 
+            name: "金鳳香米", 
+            weight: "5 公斤 (kg)", 
+            price: 85, 
+            store: "百佳超級市場", 
+            address: "銅鑼灣軒尼詩道500號興利中心地下", 
+            url: "https://www.parknshop.com" 
+        },
+        { 
+            name: "金鳳泰國頂級香米", 
+            weight: "5 公斤 (kg)", 
+            price: 82, 
+            store: "惠康超級市場", 
+            address: "中環德輔道中25號安樂園大廈地下", 
+            url: "https://www.wellcome.com.hk" 
+        },
+        { 
+            name: "金鳳泰國香米 (官方直送)", 
+            weight: "5 公斤 (kg)", 
+            price: 79, 
+            store: "HKTVmall", 
+            address: "網店 (HKTVmall O2O 門市可自取)", 
+            url: "https://www.hktvmall.com" 
+        },
+        { 
+            name: 土耳其完原色無花果乾", 
+            weight: "454克(g)", 
+            price: 61, 
+            store: 樓上 HKJEBN", 
+            address: Kowloon, Mong Kok, Sai Yeung Choi St S, 58號樓上 - 旺角招牌店 號地下", 
+            url: https://maps.app.goo.gl/pkWjGPLEEdD6nCGE7" 
+        },
+        { 
+            name: "Apple iPhone 15 128GB", 
+            weight: "171 克 (g)", 
+            price: 6499, 
+            store: "友和 YOHO", 
+            address: "長沙灣長義街9號D2 Place ONE 2樓201號舖", 
+            url: "https://www.yohohongkong.com" 
+        }
     ];
 
     function handleKeyPress(event) {
@@ -175,7 +221,9 @@
 
         // 過濾搜尋結果
         const filtered = storeDatabase.filter(item => 
-            item.name.toLowerCase().includes(query) || item.store.toLowerCase().includes(query)
+            item.name.toLowerCase().includes(query) || 
+            item.store.toLowerCase().includes(query) ||
+            item.weight.toLowerCase().includes(query)
         );
 
         if (filtered.length === 0) {
@@ -186,16 +234,17 @@
         // 按價格由低至高排序
         filtered.sort((a, b) => a.price - b.price);
 
-        // 建立 HTML 表格
+        // 建立 HTML 表格（調整欄位順序：價格在前，商店名稱在後）
         let tableHTML = `
             <table>
                 <thead>
                     <tr>
-                        <th>商品全名Product name</th>
-                        <th>重量Weight</th>
-                        <th>價格Price(HKD)<th>
-                        <th>地址Adress</th>
-                        <th>地圖</th>
+                        <th>商品全名</th>
+                        <th>重量 / 規格</th>
+                        <th>價格 (HKD)</th>
+                        <th>商店</th>
+                        <th>門市地址</th>
+                        <th>購買</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -205,13 +254,15 @@
             const isLowest = index === 0;
             tableHTML += `
                 <tr class="${isLowest ? 'best-price' : ''}">
-                    <td><strong>${item.store}</strong></td>
                     <td>${item.name}</td>
+                    <td class="weight">${item.weight || '-'}</td>
                     <td class="price">
                         $${item.price.toLocaleString()}
                         ${isLowest ? '<span class="tag-lowest">最低價</span>' : ''}
                     </td>
-                    <td><a href="${item.url}" target="_blank" class="buy-btn">前往購買</a></td>
+                    <td><strong>${item.store}</strong></td>
+                    <td class="address">${item.address || '網上商店'}</td>
+                    <td><a href="${item.url}" target="_blank" class="buy-btn">前往連結</a></td>
                 </tr>
             `;
         });
