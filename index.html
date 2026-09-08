@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨平台商品格價搜尋</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+            text-align: center;
+        }
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus {
+            border-color: #0066cc;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0052a3;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #4a5568;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        tr.best-price {
+            background-color: #f0fdf4;
+        }
+        .price {
+            font-weight: bold;
+            color: #1a202c;
+        }
+        .tag-lowest {
+            display: inline-block;
+            background-color: #22c55e;
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+            font-weight: normal;
+        }
+        .buy-btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #edf2f7;
+            color: #2d3748;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .buy-btn:hover {
+            background-color: #e2e8f0;
+            color: #1a202c;
+        }
+        .no-result {
+            text-align: center;
+            color: #a0aec0;
+            padding: 30px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>跨平台商品格價搜尋</h1>
+    <p class="subtitle">即時比較各大商店價格，自動找出最低價優惠</p>
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="輸入商品關鍵字（如：iPhone, Sony, AirPods...）" onkeypress="handleKeyPress(event)">
+        <button onclick="performSearch()">格價搜尋</button>
+    </div>
+
+    <div class="table-responsive">
+        <div id="resultArea">
+            <p class="no-result">請在上方輸入框輸入關鍵字開始搜尋。</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 模擬商店數據庫 (可依需求自由增刪項目)
+    const storeDatabase = [
+        { store: "HKTVmall", name: "Apple iPhone 15 128GB 黑色", price: 6899, url: "https://www.hktvmall.com" },
+        { store: "豐澤 Fortress", name: "Apple iPhone 15 128GB", price: 6599, url: "https://www.fortress.com.hk" },
+        { store: "百老滙 Broadway", name: "iPhone 15 128GB 智能手機", price: 6680, url: "https://www.broadwaylifestyle.com" },
+        { store: "友和 YOHO", name: "Apple iPhone 15 (128GB)", price: 6499, url: "https://www.yohohongkong.com" },
+        { store: "HKTVmall", name: "Sony WH-1000XM5 耳機", price: 2400, url: "https://www.hktvmall.com" },
+        { store: "友和 YOHO", name: "Sony WH-1000XM5 無線降噪耳機", price: 2280, url: "https://www.yohohongkong.com" },
+        { store: "豐澤 Fortress", name: "Sony WH-1000XM5 頭戴式耳機", price: 2350, url: "https://www.fortress.com.hk" },
+        { store: "百老滙 Broadway", name: "Apple AirPods Pro (第2代)", price: 1749, url: "https://www.broadwaylifestyle.com" },
+        { store: "友和 YOHO", name: "Apple AirPods Pro 2 (USB-C)", price: 1680, url: "https://www.yohohongkong.com" }
+    ];
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            performSearch();
+        }
+    }
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        const resultArea = document.getElementById('resultArea');
+
+        if (!query) {
+            resultArea.innerHTML = '<p class="no-result">請先輸入關鍵字。</p>';
+            return;
+        }
+
+        // 過濾搜尋結果
+        const filtered = storeDatabase.filter(item => 
+            item.name.toLowerCase().includes(query) || item.store.toLowerCase().includes(query)
+        );
+
+        if (filtered.length === 0) {
+            resultArea.innerHTML = '<p class="no-result">未有找到相關商品的價格資訊。</p>';
+            return;
+        }
+
+        // 按價格由低至高排序
+        filtered.sort((a, b) => a.price - b.price);
+
+        // 建立 HTML 表格
+        let tableHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>商店</th>
+                        <th>商品全名</th>
+                        <th>價格 (HKD)</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        filtered.forEach((item, index) => {
+            const isLowest = index === 0;
+            tableHTML += `
+                <tr class="${isLowest ? 'best-price' : ''}">
+                    <td><strong>${item.store}</strong></td>
+                    <td>${item.name}</td>
+                    <td class="price">
+                        $${item.price.toLocaleString()}
+                        ${isLowest ? '<span class="tag-lowest">最低價</span>' : ''}
+                    </td>
+                    <td><a href="${item.url}" target="_blank" class="buy-btn">前往購買</a></td>
+                </tr>
+            `;
+        });
+
+        tableHTML += '</tbody></table>';
+        resultArea.innerHTML = tableHTML;
+    }
+</script>
+
+</body>
+</html>
