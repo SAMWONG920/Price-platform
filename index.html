@@ -135,11 +135,21 @@
         tr.best-price {
             background-color: #f0fdf4;
         }
+        tr.flash-sale-row {
+            background-color: #fff5f5;
+        }
         .price {
             font-weight: bold;
             color: #1a202c;
             font-size: 15px;
             white-space: nowrap;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: #a0aec0;
+            font-size: 12px;
+            margin-right: 4px;
+            font-weight: normal;
         }
         .unit-price {
             display: block;
@@ -147,9 +157,26 @@
             color: #718096;
             font-weight: normal;
         }
+        .countdown-timer {
+            display: block;
+            font-size: 11px;
+            color: #e53e3e;
+            font-weight: bold;
+            margin-top: 2px;
+        }
         .tag-lowest {
             display: inline-block;
             background-color: #22c55e;
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-left: 4px;
+            font-weight: normal;
+        }
+        .tag-flash {
+            display: inline-block;
+            background-color: #e53e3e;
             color: white;
             font-size: 11px;
             padding: 2px 6px;
@@ -225,24 +252,26 @@
 </div>
 
 <script>
-    // 商品資料庫
+    // 商品資料庫 (支援普通商品與限時優惠商品)
     const storeDatabase = [
         { 
             name: "魚蛋粉麵", 
             weight: "1 碗", 
             price: 25, 
             store: "潮成園 Chiu Shing Yuen", 
-            address: "旺角上海街491號 491 Shanghai St, Mong Kok, Kowloon, Hong Kong SAR",
-            url: ""  
-            
+            address: "旺角上海街491號 491 Shanghai St, Mong Kok, Kowloon, Hong Kong SAR", 
+            url: "https://maps.app.goo.gl/SWgDG2CvGiCyqNfE7" 
         },
         { 
-            name: "兩餸飯", 
+            name: "兩餸飯 (午市限時優惠)", 
             weight: "2 餸", 
-            price: 28, 
+            price: 22, 
+            originalPrice: 28, // 劃線原價
             store: "港佳美食 Kong Ka Restaurest", 
             address: "九龍旺角上海街523號 523 Shanghai St, Mong Kok, Kowloon, Hong Kong SAR", 
-            url: "https://maps.app.goo.gl/Cq9nRPX7BEKWU83H6" 
+            url: "https://maps.app.goo.gl/Cq9nRPX7BEKWU83H6",
+            isFlashSale: true, // 開啟限時特價
+            expireDate: "2026-10-31 23:59:59" // 優惠截止時間
         },
         { 
             name: "兩餸飯", 
@@ -261,14 +290,19 @@
             url: "https://www.fortress.com.hk" 
         },
         { 
-            name: "Apple iPhone 15 128GB", 
+            name: "Apple iPhone 15 128GB (快閃優惠)", 
             weight: "171 克 (g)", 
-            price: 6499, 
+            price: 5999, 
+            originalPrice: 6499,
             store: "友和 YOHO", 
             address: "長沙灣長義街9號D2 Place ONE 2樓201號舖", 
-            url: "https://www.yohohongkong.com" 
+            url: "https://www.yohohongkong.com",
+            isFlashSale: true,
+            expireDate: "2026-09-30 23:59:59"
         }
     ];
+
+    let timerInterval = null;
 
     // 熱門標籤快捷搜尋
     function quickSearch(keyword) {
@@ -282,15 +316,14 @@
         }
     }
 
-    // 計算單位平均價格（如：算出一餸 / 1碗 / 1kg 多少錢）
+    // 計算單位平均價格
     function calculateUnitPrice(price, weightStr) {
         if (!weightStr) return '';
-        const match = weightStr.match(/(\d+(\.\d+)?)/); // 提取數字
+        const match = weightStr.match(/(\d+(\.\d+)?)/);
         if (match) {
             const num = parseFloat(match[0]);
             if (num > 0) {
                 const unitPrice = (price / num).toFixed(1);
-                // 取得單位名稱 (例如 "碗", "餸", "kg")
                 const unitName = weightStr.replace(/[\d\.\s]/g, '') || '單位';
                 return `(約 HK$${unitPrice} / ${unitName})`;
             }
@@ -298,7 +331,35 @@
         return '';
     }
 
+    // 更新所有倒數計時器
+    function updateTimers() {
+        const timerElements = document.querySelectorAll('.countdown-timer');
+        const now = new Date().getTime();
+
+        timerElements.forEach(el => {
+            const expireTime = new Date(el.dataset.expire).getTime();
+            const distance = expireTime - now;
+
+            if (distance < 0) {
+                el.innerHTML = '⏰ 優惠已結束';
+                el.style.color = '#a0aec0';
+            } else {
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                let timeStr = '⏰ 剩餘 ';
+                if (days > 0) timeStr += `${days}天 `;
+                timeStr += `${hours}時${minutes}分${seconds}秒`;
+                el.innerHTML = timeStr;
+            }
+        });
+    }
+
     function performSearch() {
+        if (timerInterval) clearInterval(timerInterval); // 清除舊計時器
+
         const query = document.getElementById('searchInput').value.trim().toLowerCase();
         const resultArea = document.getElementById('resultArea');
 
@@ -341,18 +402,24 @@
         filtered.forEach((item, index) => {
             const isLowest = index === 0;
             const unitPriceText = calculateUnitPrice(item.price, item.weight);
-            
-            // 地圖自動連結生成：若有地址則自動生成 Google Maps 搜尋連結
             const mapUrl = item.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}` : '#';
 
+            let rowClass = isLowest ? 'best-price' : '';
+            if (item.isFlashSale) rowClass += ' flash-sale-row';
+
             tableHTML += `
-                <tr class="${isLowest ? 'best-price' : ''}">
-                    <td>${item.name}</td>
+                <tr class="${rowClass}">
+                    <td>
+                        ${item.name}
+                        ${item.isFlashSale ? '<span class="tag-flash">限時優惠</span>' : ''}
+                    </td>
                     <td class="weight">${item.weight || '-'}</td>
                     <td class="price">
+                        ${item.originalPrice ? `<span class="original-price">$${item.originalPrice.toLocaleString()}</span>` : ''}
                         $${item.price.toLocaleString()}
                         ${isLowest ? '<span class="tag-lowest">最低價</span>' : ''}
                         ${unitPriceText ? `<span class="unit-price">${unitPriceText}</span>` : ''}
+                        ${item.isFlashSale && item.expireDate ? `<span class="countdown-timer" data-expire="${item.expireDate}">加載倒數中...</span>` : ''}
                     </td>
                     <td><strong>${item.store}</strong></td>
                     <td>
@@ -365,6 +432,10 @@
 
         tableHTML += '</tbody></table>';
         resultArea.innerHTML = tableHTML;
+
+        // 啟動動態倒數計時器
+        updateTimers();
+        timerInterval = setInterval(updateTimers, 1000);
     }
 </script>
 
