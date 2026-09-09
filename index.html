@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>跨平台商品格價搜尋</title>
+    <title>YAU嘢格價資訊搜尋 YAU Yeh Price Comparison Info Searching</title>
     <style>
         * {
             box-sizing: border-box;
@@ -42,7 +42,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         h1 {
-            font-size: 24px;
+            font-size: 22px;
             margin-bottom: 8px;
             color: #1a1a1a;
             text-align: center;
@@ -56,7 +56,7 @@
         .search-container {
             display: flex;
             gap: 10px;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
         }
         input[type="text"] {
             flex: 1;
@@ -84,6 +84,30 @@
         button:hover {
             background-color: #0052a3;
         }
+        /* 熱門搜尋標籤樣式 */
+        .quick-tags {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #666;
+        }
+        .tag-btn {
+            background-color: #edf2f7;
+            color: #2d3748;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tag-btn:hover {
+            background-color: #0066cc;
+            color: white;
+        }
         .table-responsive {
             overflow-x: auto;
         }
@@ -91,7 +115,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            min-width: 750px;
+            min-width: 800px;
         }
         th, td {
             padding: 14px 12px;
@@ -117,6 +141,12 @@
             font-size: 15px;
             white-space: nowrap;
         }
+        .unit-price {
+            display: block;
+            font-size: 11px;
+            color: #718096;
+            font-weight: normal;
+        }
         .tag-lowest {
             display: inline-block;
             background-color: #22c55e;
@@ -127,10 +157,15 @@
             margin-left: 4px;
             font-weight: normal;
         }
-        .address {
-            color: #718096;
+        .address-link {
+            color: #2b6cb0;
+            text-decoration: none;
             font-size: 13px;
             line-height: 1.4;
+        }
+        .address-link:hover {
+            text-decoration: underline;
+            color: #0066cc;
         }
         .weight {
             color: #4a5568;
@@ -162,16 +197,24 @@
 
 <!-- 頂部橫幅圖片區塊 -->
 <div class="top-banner">
-    <img src="https://img.notionusercontent.com/s3/prod-files-secure%2Fb5311cdf-0a2c-81bc-8f7d-000315b8c126%2F20718114-b69a-4d26-a478-45d75498efb9%2FPrice_comparison_platform_Notion_banner_(1500_x_800_px)_(1).png/size/w=770?tok=eyJhbGciOiJFUzI1NiIsImtpZCI6IlI3dzVrRnREIiwidHlwIjoiSldUIn0.eyJzcGFjZUlkIjoiYjUzMTFjZGYtMGEyYy04MWJjLThmN2QtMDAwMzE1YjhjMTI2IiwiZmlsZUlkIjoiMjA3MTgxMTQtYjY5YS00ZDI2LWE0NzgtNDVkNzU0OThlZmI5IiwicmVjb3JkIjoiYmxvY2s6MzFhMTFjZGYtMGEyYy04MzdjLWFlMWQtODE3ZjlmNzkzMTkxIiwiZXhwIjoxNzg4OTc3OTk5fQ.bbfy45tb77307UD4OguEIryJOZJvDqhOwJd44mNCUWe-fUY-Uher4v5rebzz1eLzQQtI5MAD26VJXYfBHwaXNg&imgBuildSrc=createSecureFileAccessTokenImageUrl&mtd=so" alt="格價平台 Banner">
+    <img src="Price comparison platform_Notion banner (1500 x 800 px) (1500 x 200 px).png" alt="YAU嘢格價平台 Banner">
 </div>
 
 <div class="container">
-    <h1>跨平台商品格價搜尋</h1>
+    <h1>YAU嘢格價資訊搜尋 YAU Yeh Price Comparison Info Searching</h1>
     <p class="subtitle">即時比較各大商店價格、規格與地址，自動找出最低價優惠</p>
     
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="輸入商品關鍵字（如：白米, iPhone, 貓糧...）" onkeypress="handleKeyPress(event)">
+        <input type="text" id="searchInput" placeholder="輸入商品關鍵字（如：兩餸飯, 魚蛋粉, iPhone...）" onkeypress="handleKeyPress(event)">
         <button onclick="performSearch()">格價搜尋</button>
+    </div>
+
+    <!-- 熱門關鍵字標籤功能 -->
+    <div class="quick-tags">
+        <span>🔥 熱門搜尋：</span>
+        <button class="tag-btn" onclick="quickSearch('兩餸飯')">兩餸飯</button>
+        <button class="tag-btn" onclick="quickSearch('魚蛋粉')">魚蛋粉</button>
+        <button class="tag-btn" onclick="quickSearch('iPhone')">iPhone</button>
     </div>
 
     <div class="table-responsive">
@@ -185,28 +228,28 @@
     // 商品資料庫
     const storeDatabase = [
         { 
-            name: "金鳳香米", 
-            weight: "5 公斤 (kg)", 
-            price: 85, 
-            store: "百佳超級市場", 
-            address: "銅鑼灣軒尼詩道500號興利中心地下", 
-            url: "https://www.parknshop.com" 
+            name: "魚蛋粉麵", 
+            weight: "1 碗", 
+            price: 25, 
+            store: "潮成園 Chiu Shing Yuen", 
+            address: "旺角上海街491號 491 Shanghai St, Mong Kok, Kowloon, Hong Kong SAR", 
+            url: "https://maps.app.goo.gl/SWgDG2CvGiCyqNfE7" 
         },
         { 
-            name: "金鳳泰國頂級香米", 
-            weight: "5 公斤 (kg)", 
-            price: 82, 
-            store: "惠康超級市場", 
-            address: "中環德輔道中25號安樂園大廈地下", 
-            url: "https://www.wellcome.com.hk" 
+            name: "兩餸飯", 
+            weight: "2 餸", 
+            price: 28, 
+            store: "港佳美食 Kong Ka Restaurest", 
+            address: "九龍旺角上海街523號 523 Shanghai St, Mong Kok, Kowloon, Hong Kong SAR", 
+            url: "https://maps.app.goo.gl/Cq9nRPX7BEKWU83H6" 
         },
         { 
-            name: "金鳳泰國香米 (官方直送)", 
-            weight: "5 公斤 (kg)", 
-            price: 79, 
-            store: "HKTVmall", 
-            address: "網店 (HKTVmall O2O 門市可自取)", 
-            url: "https://www.hktvmall.com" 
+            name: "兩餸飯", 
+            weight: "2 餸", 
+            price: 30, 
+            store: "雄記小廚 Hung Kee Kitchen", 
+            address: "油麻地砵蘭街65號 65 Portland St, Yau Ma Tei, Kowloon, Hong Kong SAR", 
+            url: "https://maps.app.goo.gl/VJ1dBHpomLs1LWR79" 
         },
         { 
             name: "Apple iPhone 15 128GB", 
@@ -226,10 +269,32 @@
         }
     ];
 
+    // 熱門標籤快捷搜尋
+    function quickSearch(keyword) {
+        document.getElementById('searchInput').value = keyword;
+        performSearch();
+    }
+
     function handleKeyPress(event) {
         if (event.key === 'Enter') {
             performSearch();
         }
+    }
+
+    // 計算單位平均價格（如：算出一餸 / 1碗 / 1kg 多少錢）
+    function calculateUnitPrice(price, weightStr) {
+        if (!weightStr) return '';
+        const match = weightStr.match(/(\d+(\.\d+)?)/); // 提取數字
+        if (match) {
+            const num = parseFloat(match[0]);
+            if (num > 0) {
+                const unitPrice = (price / num).toFixed(1);
+                // 取得單位名稱 (例如 "碗", "餸", "kg")
+                const unitName = weightStr.replace(/[\d\.\s]/g, '') || '單位';
+                return `(約 HK$${unitPrice} / ${unitName})`;
+            }
+        }
+        return '';
     }
 
     function performSearch() {
@@ -265,8 +330,8 @@
                         <th>重量 / 規格</th>
                         <th>價格 (HKD)</th>
                         <th>商店</th>
-                        <th>門市地址</th>
-                        <th>購買</th>
+                        <th>門市地址 (點擊開啟地圖)</th>
+                        <th>連結</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -274,6 +339,11 @@
 
         filtered.forEach((item, index) => {
             const isLowest = index === 0;
+            const unitPriceText = calculateUnitPrice(item.price, item.weight);
+            
+            // 地圖自動連結生成：若有地址則自動生成 Google Maps 搜尋連結
+            const mapUrl = item.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}` : '#';
+
             tableHTML += `
                 <tr class="${isLowest ? 'best-price' : ''}">
                     <td>${item.name}</td>
@@ -281,9 +351,12 @@
                     <td class="price">
                         $${item.price.toLocaleString()}
                         ${isLowest ? '<span class="tag-lowest">最低價</span>' : ''}
+                        ${unitPriceText ? `<span class="unit-price">${unitPriceText}</span>` : ''}
                     </td>
                     <td><strong>${item.store}</strong></td>
-                    <td class="address">${item.address || '網上商店'}</td>
+                    <td>
+                        ${item.address ? `<a href="${mapUrl}" target="_blank" class="address-link">📍 ${item.address}</a>` : '網上商店'}
+                    </td>
                     <td><a href="${item.url}" target="_blank" class="buy-btn">前往連結</a></td>
                 </tr>
             `;
